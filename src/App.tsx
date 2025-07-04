@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
-import type { Schema } from "../amplify/data/resource";
-import { generateClient } from "aws-amplify/data";
-import { signIn, signOut, getCurrentUser, signUp, confirmSignUp, resendSignUpCode, confirmSignIn } from 'aws-amplify/auth';
-import { fetchUserAttributes } from 'aws-amplify/auth';
 import './App.css';
+import { useEffect, useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { signIn, signOut, getCurrentUser, signUp, confirmSignUp, resendSignUpCode } from 'aws-amplify/auth';
 
-const client = generateClient<Schema>();
+import LoginPage from './components/LoginPage';
+import TodosPage from './components/TodosPage';
+import ShowcasePage from './components/ShowcasePage';
 
 // Custom Phone Authenticator Component
 function PhoneAuthenticator({ children }: { children: (props: { signOut: () => void }) => React.ReactNode }) {
@@ -256,10 +256,24 @@ function PhoneAuthenticator({ children }: { children: (props: { signOut: () => v
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            border: '4px solid #f3f4f6',
+            borderTop: '4px solid #3b82f6',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto'
+          }}></div>
+          <p style={{ marginTop: '1rem', color: '#6b7280' }}>Loading...</p>
         </div>
       </div>
     );
@@ -270,265 +284,42 @@ function PhoneAuthenticator({ children }: { children: (props: { signOut: () => v
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8 animate-fadeIn">
-          {step === 'welcome' && (
-            <div className="text-center">
-              <div className="mb-8">
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome to Todo App</h1>
-                <p className="text-lg text-gray-600">Organize your tasks and stay productive!</p>
-              </div>
-              
-              <div className="space-y-4 mb-8">
-                <div className="flex items-center p-4 bg-green-50 rounded-lg">
-                  <span className="text-2xl mr-4">✅</span>
-                  <span className="text-gray-700 font-medium">Create and manage todos</span>
-                </div>
-                <div className="flex items-center p-4 bg-blue-50 rounded-lg">
-                  <span className="text-2xl mr-4">📱</span>
-                  <span className="text-gray-700 font-medium">Secure phone authentication</span>
-                </div>
-                <div className="flex items-center p-4 bg-purple-50 rounded-lg">
-                  <span className="text-2xl mr-4">🔄</span>
-                  <span className="text-gray-700 font-medium">Real-time sync</span>
-                </div>
-              </div>
-              
-              <button
-                onClick={handleStartAuth}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold text-lg transition-all duration-200 hover:from-indigo-700 hover:to-purple-700 hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              >
-                Get Started
-              </button>
-            </div>
-          )}
-          
-          {step === 'phone' && (
-            <div>
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">Sign In with Phone</h2>
-                <p className="text-gray-600">Enter your phone number to get started</p>
-              </div>
-              
-              <form onSubmit={handlePhoneSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                  <div className="flex">
-                    <span className="inline-flex items-center px-3 py-2 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 font-medium">
-                      +91
-                    </span>
-                    <input
-                      type="tel"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
-                      placeholder="Enter your phone number"
-                      maxLength={10}
-                      required
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nickname (Optional)</label>
-                  <input
-                    type="text"
-                    value={nickname}
-                    onChange={(e) => setNickname(e.target.value)}
-                    placeholder="Enter your nickname"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
-                  <p className="text-sm text-gray-500 mt-1">We'll use your phone number if not provided</p>
-                </div>
-                
-                {error && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-700 text-sm">{error}</p>
-                  </div>
-                )}
-                
-                <button
-                  type="submit"
-                  disabled={isSubmitting || phoneNumber.length < 10}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-200 hover:from-indigo-700 hover:to-purple-700 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                  {isSubmitting ? 'Sending...' : 'Send OTP'}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => setStep('welcome')}
-                  className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg font-medium transition-all duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                >
-                  Back to Welcome
-                </button>
-              </form>
-            </div>
-          )}
-
-          {step === 'otp' && (
-            <div>
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">Verify Your Phone</h2>
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-green-700 font-medium">📱 Verification code sent to +91{phoneNumber}</p>
-                  <p className="text-green-600 text-sm mt-1">Check your phone for SMS (may take 1-2 minutes)</p>
-                </div>
-              </div>
-              
-              <form onSubmit={handleOtpSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Verification Code</label>
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    placeholder="Enter 6-digit OTP"
-                    maxLength={6}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-lg font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
-                </div>
-                
-                {error && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-700 text-sm">{error}</p>
-                  </div>
-                )}
-                
-                <button
-                  type="submit"
-                  disabled={isSubmitting || otp.length < 6}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-200 hover:from-indigo-700 hover:to-purple-700 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                  {isSubmitting ? 'Verifying...' : 'Verify OTP'}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={handleResendOtp}
-                  disabled={isSubmitting}
-                  className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg font-medium transition-all duration-200 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 mb-2"
-                >
-                  {isSubmitting ? 'Resending...' : 'Resend OTP'}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => setStep('phone')}
-                  className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg font-medium transition-all duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                >
-                  Back to Phone
-                </button>
-              </form>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+    <LoginPage
+      onPhoneSubmit={(phone, nickname) => {
+        setPhoneNumber(phone);
+        setNickname(nickname);
+        handlePhoneSubmit({ preventDefault: () => {} } as any);
+      }}
+      onOtpSubmit={(otpValue) => {
+        setOtp(otpValue);
+        handleOtpSubmit({ preventDefault: () => {} } as any);
+      }}
+      onResendOtp={handleResendOtp}
+      onStartAuth={handleStartAuth}
+      step={step}
+      phoneNumber={phoneNumber}
+      setPhoneNumber={setPhoneNumber}
+      nickname={nickname}
+      setNickname={setNickname}
+      otp={otp}
+      setOtp={setOtp}
+      error={error}
+      isSubmitting={isSubmitting}
+      onBack={() => setStep(step === 'otp' ? 'phone' : 'welcome')}
+    />
   );
 }
 
 function App() {
-  const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
-
-  useEffect(() => {
-    client.models.Todo.observeQuery().subscribe({
-      next: (data) => setTodos([...data.items]),
-    });
-  }, []);
-
-  function createTodo() {
-    client.models.Todo.create({ content: window.prompt("Todo content") });
-  }
-
   return (
     <PhoneAuthenticator>
       {({ signOut }) => (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-          <div className="max-w-4xl mx-auto p-6">
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <UserAttributes />
-              
-              <div className="mt-8">
-                <h1 className="text-4xl font-bold text-gray-900 mb-6">My todos</h1>
-                
-                <button
-                  onClick={createTodo}
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 hover:from-green-600 hover:to-emerald-700 hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 mb-6"
-                >
-                  + Add New Todo
-                </button>
-                
-                <div className="space-y-3">
-                  {todos.map((todo) => (
-                    <div
-                      key={todo.id}
-                      className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200"
-                    >
-                      <p className="text-gray-800">{todo.content}</p>
-                    </div>
-                  ))}
-                  
-                  {todos.length === 0 && (
-                    <div className="text-center py-12">
-                      <p className="text-gray-500 text-lg">No todos yet. Create your first todo!</p>
-                    </div>
-                  )}
-                </div>
-                
-                <button
-                  onClick={signOut}
-                  className="mt-8 bg-red-500 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-red-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                >
-                  Sign out
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Routes>
+          <Route path="/" element={<TodosPage signOut={signOut} />} />
+          <Route path="/ShadcnShowcase" element={<ShowcasePage signOut={signOut} />} />
+        </Routes>
       )}
     </PhoneAuthenticator>
-  );
-}
-
-function UserAttributes() {
-  const [attributes, setAttributes] = useState<any>(null);
-
-  useEffect(() => {
-    fetchUserAttributes().then(setAttributes);
-  }, []);
-
-  const getDisplayName = () => {
-    if (!attributes) return 'Loading...';
-    
-    if (attributes.nickname) {
-      return attributes.nickname;
-    }
-    
-    if (attributes.phone_number) {
-      return attributes.phone_number;
-    }
-    
-    return 'User';
-  };
-
-  return (
-    <div className="text-center">
-      <h2 className="text-3xl font-bold text-gray-900 mb-4">
-        Welcome, {getDisplayName()}! 👋
-      </h2>
-      
-      <details className="text-left">
-        <summary className="cursor-pointer text-indigo-600 hover:text-indigo-800 font-medium">
-          View User Details
-        </summary>
-        <pre className="mt-2 p-4 bg-gray-100 rounded-lg text-sm overflow-x-auto">
-          {JSON.stringify(attributes, null, 2)}
-        </pre>
-      </details>
-    </div>
   );
 }
 
