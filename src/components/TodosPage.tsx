@@ -21,7 +21,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '2rem',
-    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+    background: 'linear-gradient(135deg, #00BE76, #40D396)',
     color: 'white',
     borderRadius: '12px',
     marginBottom: '2rem'
@@ -62,7 +62,7 @@ const styles = {
   },
   button: {
     padding: '12px 24px',
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#00BE76',
     color: 'white',
     border: 'none',
     borderRadius: '8px',
@@ -218,10 +218,10 @@ function StatsCards({ todos }: { todos: Array<Schema["Todo"]["type"]> }) {
   const completionRate = todos.length > 0 ? Math.round((completedTodos / todos.length) * 100) : 0;
 
   const statCards = [
-    { title: 'Total Tasks', value: todos.length, color: '#3b82f6' },
+    { title: 'Total Tasks', value: todos.length, color: '#00BE76' },
     { title: 'Completed', value: completedTodos, color: '#10b981' },
     { title: 'Pending', value: pendingTodos, color: '#f59e0b' },
-    { title: 'Progress', value: `${completionRate}%`, color: '#8b5cf6' }
+    { title: 'Progress', value: `${completionRate}%`, color: '#40D396' }
   ];
 
   return (

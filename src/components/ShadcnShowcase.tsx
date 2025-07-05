@@ -51,7 +51,7 @@ const styles = {
   },
   button: {
     padding: '12px 24px',
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#00BE76',
     color: 'white',
     border: 'none',
     borderRadius: '8px',
@@ -76,8 +76,8 @@ const styles = {
   buttonOutline: {
     padding: '12px 24px',
     backgroundColor: 'transparent',
-    color: '#3b82f6',
-    border: '2px solid #3b82f6',
+    color: '#00BE76',
+    border: '2px solid #00BE76',
     borderRadius: '8px',
     cursor: 'pointer',
     fontSize: '16px',
@@ -195,7 +195,7 @@ const styles = {
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#00BE76',
     borderRadius: '6px',
     transition: 'width 0.3s ease'
   },
@@ -209,7 +209,7 @@ const styles = {
     transition: 'background-color 0.3s ease'
   },
   switchActive: {
-    backgroundColor: '#3b82f6'
+    backgroundColor: '#00BE76'
   },
   switchHandle: {
     position: 'absolute' as const,

@@ -13,8 +13,9 @@ function PhoneAuthenticator({ children }: { children: (props: { signOut: () => v
   const [loading, setLoading] = useState(true);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [nickname, setNickname] = useState('');
+  const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
-  const [step, setStep] = useState<'welcome' | 'phone' | 'otp'>('welcome');
+  const [step, setStep] = useState<'welcome' | 'phone' | 'otp' | 'profile'>('welcome');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
@@ -118,8 +119,8 @@ function PhoneAuthenticator({ children }: { children: (props: { signOut: () => v
         console.log('✅ signIn result:', signInResult);
 
         if (signInResult.isSignedIn) {
-          console.log('✅ User is signed in, checking auth state...');
-          await checkAuthState();
+          console.log('✅ User is signed in, going to profile step...');
+          setStep('profile');
         }
       } else {
         console.log('🔄 Existing user - Attempting direct signIn with OTP...');
@@ -135,8 +136,8 @@ function PhoneAuthenticator({ children }: { children: (props: { signOut: () => v
           console.log('✅ Direct signIn result:', signInResult);
 
           if (signInResult.isSignedIn) {
-            console.log('✅ User is signed in, checking auth state...');
-            await checkAuthState();
+            console.log('✅ User is signed in, going to profile step...');
+            setStep('profile');
           } else if (signInResult.nextStep) {
             console.log('🔄 Sign in requires additional step:', signInResult.nextStep);
             // Handle additional steps if needed (like MFA)
@@ -153,8 +154,8 @@ function PhoneAuthenticator({ children }: { children: (props: { signOut: () => v
           console.log('✅ Fallback signIn result:', fallbackSignInResult);
 
           if (fallbackSignInResult.isSignedIn) {
-            console.log('✅ User is signed in with fallback, checking auth state...');
-            await checkAuthState();
+            console.log('✅ User is signed in with fallback, going to profile step...');
+            setStep('profile');
           }
         }
       }
@@ -176,7 +177,7 @@ function PhoneAuthenticator({ children }: { children: (props: { signOut: () => v
           console.log('✅ Direct signIn for confirmed user successful:', signInResult);
           
           if (signInResult.isSignedIn) {
-            await checkAuthState();
+            setStep('profile');
           }
         } catch (signInError: any) {
           console.error('❌ Direct signIn for confirmed user failed:', signInError);
@@ -199,7 +200,7 @@ function PhoneAuthenticator({ children }: { children: (props: { signOut: () => v
             confirmationCode: otp,
           });
           console.log('✅ Late confirmSignUp successful:', confirmResult);
-          await checkAuthState();
+          setStep('profile');
         } catch (confirmError: any) {
           console.error('❌ Late confirmSignUp failed:', confirmError);
           setError(`Verification failed: ${confirmError.message || 'Invalid verification code'}`);
@@ -212,12 +213,41 @@ function PhoneAuthenticator({ children }: { children: (props: { signOut: () => v
     setIsSubmitting(false);
   };
 
+  const handleProfileSubmit = async (profileNickname: string, profileEmail: string) => {
+    setIsSubmitting(true);
+    setError('');
+    
+    try {
+      // Update user attributes if needed
+      // You can add API calls here to save nickname and email to your backend
+      console.log('Profile submitted:', { nickname: profileNickname, email: profileEmail });
+      
+      // Complete the authentication flow
+      await checkAuthState();
+    } catch (error: any) {
+      console.error('❌ Profile submission error:', error);
+      setError(`Profile update failed: ${error.message || 'Unable to save profile'}`);
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleProfileLater = async () => {
+    try {
+      // Skip profile setup and complete authentication
+      await checkAuthState();
+    } catch (error: any) {
+      console.error('❌ Profile skip error:', error);
+      setError(`Authentication completion failed: ${error.message || 'Unable to complete login'}`);
+    }
+  };
+
   const handleSignOut = async () => {
     try {
       await signOut();
       setUser(null);
       setPhoneNumber('');
       setNickname('');
+      setEmail('');
       setOtp('');
       setStep('welcome');
       setError('');
@@ -261,14 +291,19 @@ function PhoneAuthenticator({ children }: { children: (props: { signOut: () => v
         background: 'linear-gradient(135deg, #f8fafc, #e2e8f0)',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        padding: '0'
       }}>
-        <div style={{ textAlign: 'center' }}>
+        <div style={{ 
+          textAlign: 'center',
+          width: '100%',
+          padding: '0 1rem'
+        }}>
           <div style={{
             width: '48px',
             height: '48px',
             border: '4px solid #f3f4f6',
-            borderTop: '4px solid #3b82f6',
+            borderTop: '4px solid #00BE76',
             borderRadius: '50%',
             animation: 'spin 1s linear infinite',
             margin: '0 auto'
@@ -296,16 +331,20 @@ function PhoneAuthenticator({ children }: { children: (props: { signOut: () => v
       }}
       onResendOtp={handleResendOtp}
       onStartAuth={handleStartAuth}
+      onProfileSubmit={handleProfileSubmit}
+      onProfileLater={handleProfileLater}
       step={step}
       phoneNumber={phoneNumber}
       setPhoneNumber={setPhoneNumber}
       nickname={nickname}
       setNickname={setNickname}
+      email={email}
+      setEmail={setEmail}
       otp={otp}
       setOtp={setOtp}
       error={error}
       isSubmitting={isSubmitting}
-      onBack={() => setStep(step === 'otp' ? 'phone' : 'welcome')}
+      onBack={() => setStep(step === 'otp' ? 'phone' : step === 'profile' ? 'otp' : 'welcome')}
     />
   );
 }
